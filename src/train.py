@@ -4,14 +4,15 @@ from ultralytics import YOLO
 
 if __name__ == "__main__":
     # Download and prepare dataset
-    dataset_path = kagglehub.dataset_download("barkataliarbab/udacity-self-driving-car-obstacles-dataset")
+    dataset_path = kagglehub.dataset_download(
+        "barkataliarbab/udacity-self-driving-car-obstacles-dataset")
     yaml_path = os.path.join(dataset_path, "data.yaml")
     config_path = os.path.join(os.path.dirname(__file__), "custom_yolo.yaml")
 
     # ref: https://github.com/ultralytics/ultralytics/blob/main/README.md & https://docs.ultralytics.com/usage/python/
     # Load model
-    model = YOLO(config_path, task="detect") # detect task for object detection
-
+    # detect task for object detection
+    model = YOLO(config_path, task="detect")
 
     # Transfer pretrained YOLO neck + head weights
     model.load("yolov8n.pt")
