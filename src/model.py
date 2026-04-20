@@ -1,11 +1,9 @@
 import torch
 import torch.nn as nn
 
+# Conv → BatchNorm → LeakyReLU : Follows normal darknet pattern
+
 class ConvBNLeaky(nn.Module):
-    """
-    Conv → BatchNorm → LeakyReLU
-    The fundamental unit of Darknet-style CNNs.
-    """
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=None):
         super().__init__()
         if padding is None:
@@ -18,14 +16,9 @@ class ConvBNLeaky(nn.Module):
     def forward(self, x):
         return self.act(self.bn(self.conv(x)))
 
+# Darknet-style residual block: 1x1 conv (bottleneck) → 3x3 conv → skip connection
+# The bottleneck halves channels then restores them, reducing parameters while preserving spatial features.
 class DarknetResidualBlock(nn.Module):
-    """
-    Darknet-style residual block:
-        1x1 conv (bottleneck) → 3x3 conv → skip connection
-
-    The bottleneck halves channels then restores them,
-    reducing parameters while preserving spatial features.
-    """
     def __init__(self, channels):
         super().__init__()
         mid = channels // 2
@@ -37,13 +30,8 @@ class DarknetResidualBlock(nn.Module):
     def forward(self, x):
         return x + self.block(x)  # residual / skip connection
 
+# Each stage consists of a downsampling conv followed by N residual blocks.
 class DarknetStage(nn.Module):
-    """
-    One downsampling stage:
-        strided conv (downsample) → N residual blocks
-
-    Mirrors the structure of Darknet-53 stages.
-    """
     def __init__(self, in_channels, out_channels, num_blocks):
         super().__init__()
         # stride=2 halves spatial resolution (like a max-pool but learnable)
@@ -56,27 +44,8 @@ class DarknetStage(nn.Module):
     def forward(self, x):
         return self.blocks(self.downsample(x))
     
-# Full Backbone
+# Full Backbone: Initial stem + 4 stages with increasing channels and decreasing spatial resolution.
 class RoadVisionDarknetBackbone(nn.Module):
-    """
-    Darknet-inspired backbone for road vision tasks.
-    
-    Input: (B, 3, 512, 512)
-    Output: three feature maps at different scales for YOLO neck:
-        - P3: (B, 128, 64, 64)  small object features
-        - P4: (B, 256, 32, 32)  medium object features
-        - P5: (B, 512, 16, 16)  large object features
-
-    Architecture mirrors Darknet-53 but scaled for 512x512 input and 11-class road detection:
-
-    Stage breakdown (input 512x512):
-        stem: 256x256
-        stage1: 128x128 (64 ch, 1 block)
-        stage2: 64x64   (128 ch, 2 blocks) <- P3 output
-        stage3: 32x32   (256 ch, 8 blocks) <- P4 output
-        stage4: 16x16   (512 ch, 8 blocks) <- P5 output
-    """
-
     def __init__(self):
         super().__init__()
 
@@ -99,11 +68,8 @@ class RoadVisionDarknetBackbone(nn.Module):
         # weight initialization
         self._initialize_weights()
 
+    # Kaiming He initialization for conv layers, BatchNorm weights to 1 and bias to 0
     def _initialize_weights(self):
-        """
-        Initialize weights using Kaiming He initialization for convolutional layers
-        BatchNorm layers are initialized to 1 and bias to 0.
-        """
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
                 nn.init.kaiming_normal_(m.weight, mode='fan_out', nonlinearity='leaky_relu')
