@@ -16,17 +16,14 @@ if __name__ == "__main__":
 
     # Transfer pretrained YOLO neck + head weights
     model.load("yolov8n.pt")
-
-    # device is auto detected (GPU if available, else CPU): add device=0 for GPU, device='cpu' for CPU
+   
     # save; training checkpoints and final model weights.
     model.train(
         data=yaml_path,
-        epochs=10,
+        epochs=30,
         imgsz=512,
         optimizer="AdamW",
-        # freeze backbone layers (first 10 layers) to retain pretrained features
-        freeze=10,
-        lr0=0.001,  # initial learning rate
-        seed=42,
-        save=True,
+        device=0,  # auto-detect GPU (set to 'cpu' to force CPU)
+        amp=False,   # disable automatic mixed precision - fixes NaN loss issues with custom backbone
+        verbose=False # supresses terminal output
     )
