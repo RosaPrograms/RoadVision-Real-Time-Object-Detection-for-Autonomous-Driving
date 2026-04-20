@@ -1,5 +1,6 @@
 # custom_yolo.yaml
 # RoadVision — Custom Darknet Backbone + YOLOv8 Neck & Head
+# ref: https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/models/v8/yolov8.yaml
 
 task: detect
 nc: 11
