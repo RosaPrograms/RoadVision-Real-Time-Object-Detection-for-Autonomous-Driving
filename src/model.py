@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 
 # Conv → BatchNorm → LeakyReLU : Follows normal darknet pattern
+# ref: https://www.geeksforgeeks.org/computer-vision/darknet-53/
 
 class ConvBNLeaky(nn.Module):
     def __init__(self, in_channels, out_channels, kernel_size, stride=1, padding=None):
@@ -16,7 +17,7 @@ class ConvBNLeaky(nn.Module):
     def forward(self, x):
         return self.act(self.bn(self.conv(x)))
 
-# Darknet-style residual block: 1x1 conv (bottleneck) → 3x3 conv → skip connection
+# Darknet-style residual block: 1x1 conv (bottleneck) → 3x3 conv → skip connection: ref YOLOv3/4/5/8 design.
 # The bottleneck halves channels then restores them, reducing parameters while preserving spatial features.
 class DarknetResidualBlock(nn.Module):
     def __init__(self, channels):
